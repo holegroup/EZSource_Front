@@ -1045,7 +1045,7 @@ export function UserInventoryPage({ onMenuClick }: UserInventoryPageProps) {
                                 {changeBusyId === order.dbId ? 'Sending...' : 'Request address change'}
                               </Button>
                               {changeMessage?.id === order.dbId && (
-                                <p className={`text-[11px] ${changeMessage.error ? 'text-destructive' : 'text-emerald-600'}`}>{changeMessage.text}</p>
+                                <p className={`text-[11px] ${changeMessage?.error ? 'text-destructive' : 'text-emerald-600'}`}>{changeMessage?.text}</p>
                               )}
                             </div>
                           )}
