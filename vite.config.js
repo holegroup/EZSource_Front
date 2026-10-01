@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 export default defineConfig({
     plugins: [react()],
-    base: './',
+    // Absolute paths so nested routes such as /approve-card-design/:id
+    // load /assets/* instead of /approve-card-design/assets/*.
+    // Capacitor builds set CAPACITOR=1 and keep relative paths.
+    base: process.env.CAPACITOR === '1' ? './' : '/',
     resolve: {
         alias: {
             "@": path.resolve(__dirname, "./src"),

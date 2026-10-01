@@ -10,7 +10,7 @@
     "start": "node ./node_modules/vite/bin/vite.js preview --host 0.0.0.0 --port ${PORT:-4173}",
     "lint": "eslint .",
     "fix-windows": "npm install -D vite@^6.0.0 @rollup/rollup-win32-x64-msvc lightningcss-win32-x64-msvc --legacy-peer-deps && npm run dev",
-    "cap:sync": "npm run build && npx cap sync",
+    "cap:sync": "CAPACITOR=1 npm run build && npx cap sync",
     "cap:android": "npm run cap:sync && npx cap open android",
     "cap:ios": "npm run cap:sync && npx cap open ios"
   },
