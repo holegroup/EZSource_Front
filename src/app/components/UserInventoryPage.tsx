@@ -9,6 +9,7 @@ import { Search, TrendingDown, TrendingUp, Package, ShoppingBag, Calendar, Credi
 import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Link, useLocation } from 'react-router-dom';
+import { formatUsPhone } from '../lib/phone';
 
 interface InventoryItem {
   id: string;
@@ -183,7 +184,7 @@ export function UserInventoryPage({ onMenuClick }: UserInventoryPageProps) {
                 <h3 className="text-sm font-bold">{customization.personName}</h3>
                 <p className="text-[7px] font-medium tracking-wide opacity-85">{customization.jobTitle}</p>
                 <div className="pt-0.5 text-[5px] space-y-0.2 opacity-85 leading-normal">
-                  {customization.phone && <div>📞 {customization.phone}</div>}
+                  {formatUsPhone(customization.phone) && <div>📞 {formatUsPhone(customization.phone)}</div>}
                   {customization.email && <div>✉️ {customization.email}</div>}
                 </div>
               </div>

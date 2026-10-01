@@ -7,6 +7,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { UserRole } from '../types/roles';
 import { Package } from 'lucide-react';
+import { formatUsPhone, US_PHONE_PLACEHOLDER } from '../lib/phone';
 
 interface SignupPageProps {
   onSignup: (role: UserRole) => void;
@@ -144,12 +145,11 @@ export function SignupPage({ onSignup }: SignupPageProps) {
               <Input 
                 id="phone" 
                 type="tel"
-                inputMode="numeric"
+                inputMode="tel"
                 autoComplete="tel"
-                maxLength={10}
-                placeholder="10-digit number" 
+                placeholder={US_PHONE_PLACEHOLDER}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                onChange={(e) => setPhone(formatUsPhone(e.target.value))}
               />
             </div>
             <div className="space-y-2">

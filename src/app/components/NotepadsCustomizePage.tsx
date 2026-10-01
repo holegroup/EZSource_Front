@@ -135,6 +135,7 @@ export function NotepadsCustomizePage({ onMenuClick }: NotepadsCustomizePageProp
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          clientOrigin: window.location.origin,
           designType: 'notepad',
           designDetails: {
             measurement,

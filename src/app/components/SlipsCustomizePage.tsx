@@ -134,6 +134,7 @@ export function SlipsCustomizePage({ onMenuClick }: SlipsCustomizePageProps) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          clientOrigin: window.location.origin,
           designType: 'slip',
           designDetails: {
             measurement,

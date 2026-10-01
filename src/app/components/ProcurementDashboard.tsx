@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Building2, Package, DollarSign, FileText, CheckCircle, XCircle, Menu, Star } from 'lucide-react';
 import { StatsCard } from './StatsCard';
+import { formatUsPhone } from '../lib/phone';
 
 interface ProcurementDashboardProps {
   onMenuClick?: () => void;
@@ -12,10 +13,10 @@ interface ProcurementDashboardProps {
 
 export function ProcurementDashboard({ onMenuClick }: ProcurementDashboardProps) {
   const vendors = [
-    { id: 1, name: 'Premium Paper Co', contactPerson: 'Robert Chen', email: 'robert@premiump.com', phone: '+1 555-0201', status: 'active', rating: 4.8, products: 12, contractExpiry: '2026-09-15' },
-    { id: 2, name: 'Quality Print Supplies', contactPerson: 'Lisa Anderson', email: 'lisa@qps.com', phone: '+1 555-0202', status: 'active', rating: 4.5, products: 8, contractExpiry: '2026-07-20' },
-    { id: 3, name: 'Global Stationery Inc', contactPerson: 'David Kumar', email: 'david@globalstat.com', phone: '+1 555-0203', status: 'inactive', rating: 3.9, products: 5, contractExpiry: '2026-02-10' },
-    { id: 4, name: 'Eco Office Solutions', contactPerson: 'Emma Wilson', email: 'emma@ecooffice.com', phone: '+1 555-0204', status: 'active', rating: 4.9, products: 15, contractExpiry: '2027-01-30' },
+    { id: 1, name: 'Premium Paper Co', contactPerson: 'Robert Chen', email: 'robert@premiump.com', phone: '+1 (555) 555-0201', status: 'active', rating: 4.8, products: 12, contractExpiry: '2026-09-15' },
+    { id: 2, name: 'Quality Print Supplies', contactPerson: 'Lisa Anderson', email: 'lisa@qps.com', phone: '+1 (555) 555-0202', status: 'active', rating: 4.5, products: 8, contractExpiry: '2026-07-20' },
+    { id: 3, name: 'Global Stationery Inc', contactPerson: 'David Kumar', email: 'david@globalstat.com', phone: '+1 (555) 555-0203', status: 'inactive', rating: 3.9, products: 5, contractExpiry: '2026-02-10' },
+    { id: 4, name: 'Eco Office Solutions', contactPerson: 'Emma Wilson', email: 'emma@ecooffice.com', phone: '+1 (555) 555-0204', status: 'active', rating: 4.9, products: 15, contractExpiry: '2027-01-30' },
   ];
 
   const vendorPricing = [
@@ -119,7 +120,7 @@ export function ProcurementDashboard({ onMenuClick }: ProcurementDashboardProps)
                           <TableCell>{vendor.contactPerson}</TableCell>
                           <TableCell className="text-sm">
                             <div>{vendor.email}</div>
-                            <div className="text-muted-foreground">{vendor.phone}</div>
+                            <div className="text-muted-foreground">{formatUsPhone(vendor.phone)}</div>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">

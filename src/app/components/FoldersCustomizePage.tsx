@@ -134,6 +134,7 @@ export function FoldersCustomizePage({ onMenuClick }: FoldersCustomizePageProps)
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          clientOrigin: window.location.origin,
           designType: 'folder',
           designDetails: {
             measurement,

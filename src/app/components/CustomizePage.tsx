@@ -7,6 +7,7 @@ import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useNavigate } from 'react-router-dom';
+import { formatUsPhone, US_PHONE_PLACEHOLDER } from '../lib/phone';
 import { 
   Type, Palette, ShoppingCart, Upload, CheckCircle, Smartphone, Mail, Globe, MapPin,
   Linkedin, Instagram, Facebook, Twitter, Video, Image as ImageIcon,
@@ -23,7 +24,30 @@ const parseCardQuantity = (option: string): string => {
   return match ? match[1] : '100';
 };
 
-const limitPhoneDigits = (value: string): string => value.replace(/\D/g, '').slice(0, 10);
+const readImageFile = (file: File, onLoad: (value: string) => void) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (typeof reader.result === 'string') onLoad(reader.result);
+  };
+  reader.readAsDataURL(file);
+};
+
+const toStoredImage = async (src: string | null) => {
+  if (!src) return null;
+  if (src.startsWith('data:') || src.startsWith('http') || src.startsWith('/')) return src;
+  try {
+    const fileRes = await fetch(src);
+    const blob = await fileRes.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
 
 const productPresets = [
   { measurement: '8.5 x 11 (without watermark)', reams: '50 (500/ream)', inStock: '25000', ordered: '2500', balance: '22500', minQuantity: '1500', costPerReam: '250' },
@@ -162,7 +186,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
           setTagline(config.tagline || 'Innovation Delivered');
           setPersonName(config.personName || 'John Doe');
           setJobTitle(config.jobTitle || 'Chief Creative Officer');
-          setPhone(limitPhoneDigits(config.phone || ''));
+          setPhone(formatUsPhone(config.phone || ''));
           setEmail(config.email || 'john.doe@acme.com');
           setWebsite(config.website || 'www.acmecorp.com');
           setAddress1(config.address1 || '123 Innovation Drive');
@@ -180,7 +204,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
           setAdminTagline(config.tagline || 'Innovation Delivered');
           setAdminPersonName(config.personName || 'John Doe');
           setAdminJobTitle(config.jobTitle || 'Chief Creative Officer');
-          setAdminPhone(limitPhoneDigits(config.phone || ''));
+          setAdminPhone(formatUsPhone(config.phone || ''));
           setAdminEmail(config.email || 'john.doe@acme.com');
           setAdminWebsite(config.website || 'www.acmecorp.com');
           setAdminAddress1(config.address1 || '123 Innovation Drive');
@@ -227,7 +251,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
             const userProfile = profileData.data;
             if (userProfile.fullName) setPersonName(userProfile.fullName);
             if (userProfile.jobTitle) setJobTitle(userProfile.jobTitle);
-            if (userProfile.phone) setPhone(limitPhoneDigits(userProfile.phone));
+            if (userProfile.phone) setPhone(formatUsPhone(userProfile.phone));
             if (userProfile.email) setEmail(userProfile.email);
 
             setSocialLinks(prev => prev.map(link => {
@@ -253,7 +277,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
               if (draft.tagline) setTagline(draft.tagline);
               if (draft.personName) setPersonName(draft.personName);
               if (draft.jobTitle) setJobTitle(draft.jobTitle);
-              if (draft.phone) setPhone(limitPhoneDigits(draft.phone));
+              if (draft.phone) setPhone(formatUsPhone(draft.phone));
               if (draft.email) setEmail(draft.email);
               if (draft.website) setWebsite(draft.website);
               if (draft.address1) setAddress1(draft.address1);
@@ -276,6 +300,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
               }
               if (draft.socialLinks) setSocialLinks(draft.socialLinks);
               if (draft.frontBackground) setFrontBackground(draft.frontBackground);
+              if (draft.backBackground) setBackBackground(draft.backBackground);
               if (draft.uploadedLogo) setUploadedLogo(draft.uploadedLogo);
             }
           } catch (draftErr) {
@@ -299,7 +324,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
     companyName, tagline, personName, jobTitle, phone, email, website,
     address1, address2, address3, primaryColor, secondaryColor, textColor,
     fontFamily, finishedSize, colorOptions, printConfig, sheetSize,
-    cardsPerSheet, pricingOption, orderQuantity, socialLinks, frontBackground, uploadedLogo
+    cardsPerSheet, pricingOption, orderQuantity, socialLinks, frontBackground, backBackground, uploadedLogo
   ]);
 
   // Debounced auto-save
@@ -342,6 +367,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
               orderQuantity,
               socialLinks,
               frontBackground,
+              backBackground,
               uploadedLogo
             }
           })
@@ -364,7 +390,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
     companyName, tagline, personName, jobTitle, phone, email, website,
     address1, address2, address3, primaryColor, secondaryColor, textColor,
     fontFamily, finishedSize, colorOptions, printConfig, sheetSize,
-    cardsPerSheet, pricingOption, orderQuantity, socialLinks, frontBackground, uploadedLogo
+    cardsPerSheet, pricingOption, orderQuantity, socialLinks, frontBackground, backBackground, uploadedLogo
   ]);
 
 
@@ -409,6 +435,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          clientOrigin: window.location.origin,
           designDetails: {
             companyName,
             tagline,
@@ -431,7 +458,10 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
             cardsPerSheet,
             socialLinks,
             pricingOption,
-            orderQuantity
+            orderQuantity,
+            frontBackground: await toStoredImage(frontBackground),
+            backBackground: await toStoredImage(backBackground),
+            uploadedLogo: await toStoredImage(uploadedLogo)
           }
         })
       });
@@ -608,7 +638,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
                       <Label className="text-xs text-muted-foreground">Full Front Background</Label>
                       <input 
                         type="file" ref={backBgInputRef} className="hidden" accept="image/*"
-                        onChange={(e) => { if (e.target.files?.[0]) setBackBackground(URL.createObjectURL(e.target.files[0])); }}
+                        onChange={(e) => { if (e.target.files?.[0]) readImageFile(e.target.files[0], setBackBackground); }}
                       />
                       <Button variant="outline" className="w-full justify-start mt-1 text-xs border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100" onClick={() => backBgInputRef.current?.click()}>
                         <ImageIcon className="mr-2 h-4 w-4" /> {backBackground ? "Change Front BG" : "Upload Front BG"}
@@ -629,7 +659,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <Label htmlFor="phone">Phone Number</Label>
-                        <Input id="phone" type="tel" inputMode="numeric" autoComplete="tel" maxLength={10} value={phone} onChange={e => setPhone(limitPhoneDigits(e.target.value))} placeholder="10-digit number" />
+                        <Input id="phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e => setPhone(formatUsPhone(e.target.value))} placeholder={US_PHONE_PLACEHOLDER} />
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="email">Email Address</Label>
@@ -684,7 +714,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
                         <Label className="text-xs text-muted-foreground">Upload Logo</Label>
                         <input 
                           type="file" ref={fileInputRef} className="hidden" accept="image/*"
-                          onChange={(e) => { if (e.target.files?.[0]) setUploadedLogo(URL.createObjectURL(e.target.files[0])); }}
+                          onChange={(e) => { if (e.target.files?.[0]) readImageFile(e.target.files[0], setUploadedLogo); }}
                         />
                         <Button variant="outline" className="w-full justify-start mt-1 text-xs" onClick={() => fileInputRef.current?.click()}>
                           <Upload className="mr-2 h-4 w-4" /> {uploadedLogo ? "Change Logo" : "Upload Logo"}
@@ -694,7 +724,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
                         <Label className="text-xs text-muted-foreground">Full Back Background</Label>
                         <input 
                           type="file" ref={frontBgInputRef} className="hidden" accept="image/*"
-                          onChange={(e) => { if (e.target.files?.[0]) setFrontBackground(URL.createObjectURL(e.target.files[0])); }}
+                          onChange={(e) => { if (e.target.files?.[0]) readImageFile(e.target.files[0], setFrontBackground); }}
                         />
                         <Button variant="outline" className="w-full justify-start mt-1 text-xs border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" onClick={() => frontBgInputRef.current?.click()}>
                           <ImageIcon className="mr-2 h-4 w-4" /> {frontBackground ? "Change Back BG" : "Upload Back BG"}
@@ -838,7 +868,7 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs">Phone</Label>
-                          <Input type="tel" inputMode="numeric" autoComplete="tel" maxLength={10} value={adminPhone} onChange={e => setAdminPhone(limitPhoneDigits(e.target.value))} placeholder="10-digit number" />
+                          <Input type="tel" inputMode="tel" autoComplete="tel" value={adminPhone} onChange={e => setAdminPhone(formatUsPhone(e.target.value))} placeholder={US_PHONE_PLACEHOLDER} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">Email</Label>
@@ -1201,25 +1231,70 @@ export function CustomizePage({ onMenuClick, userRole }: CustomizePageProps) {
               <div className="space-y-2 text-center my-4">
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Design Preview (Front & Back)</p>
                 <div className="grid grid-cols-2 gap-4 max-w-[360px] mx-auto">
-                  {/* Front Side */}
+                  {/* Front Side — same layout and background as the live print preview */}
                   <div className="space-y-1">
                     <span className="text-[9px] font-bold text-muted-foreground uppercase">Front</span>
-                    <div className="w-full aspect-[3.5/2] rounded border border-border shadow overflow-hidden relative text-left bg-white"
-                         style={{ 
-                           backgroundColor: secondaryColor || '#ffffff', 
-                           color: textColor || '#1e293b',
-                           fontFamily: getFontFamily(),
-                         }}>
-                      <div className="absolute top-0 right-0 p-1 text-right flex flex-col items-end scale-[0.55] origin-top-right">
-                        <span className="text-[7px] font-bold tracking-wider uppercase opacity-75">{companyName}</span>
-                        <span className="text-[5px] tracking-wider opacity-60 italic">{tagline}</span>
-                      </div>
-                      <div className="absolute bottom-0 left-0 p-1 space-y-0.5 max-w-[80%] scale-[0.55] origin-bottom-left leading-tight">
-                        <h3 className="text-[10px] font-bold">{personName}</h3>
-                        <p className="text-[6px] font-medium tracking-wide opacity-85">{jobTitle}</p>
-                        <div className="pt-0.5 text-[4px] space-y-0.2 opacity-85 leading-normal">
-                          {phone && <div>📞 {phone}</div>}
-                          {email && <div>✉️ {email}</div>}
+                    <div className="w-full aspect-[3.5/2] rounded border border-border shadow overflow-hidden relative bg-white">
+                      <div className="absolute top-0 left-0 w-[400%] origin-top-left scale-[0.25]">
+                        <div className="w-full aspect-[3.5/2] overflow-hidden rounded-md border relative bg-no-repeat bg-center"
+                             style={{
+                               backgroundColor: backBackground ? 'transparent' : (secondaryColor || '#ffffff'),
+                               backgroundImage: backBackground ? `url(${backBackground})` : 'none',
+                               backgroundSize: 'cover',
+                               fontFamily: getFontFamily(),
+                               color: textColor || '#1e293b',
+                               borderColor: backBackground ? 'transparent' : 'rgba(0,0,0,0.05)'
+                             }}>
+                          {!backBackground && (
+                            <div className="absolute top-0 bottom-0 left-0 w-4" style={{ backgroundColor: primaryColor }}></div>
+                          )}
+                          <div className={`h-full flex flex-col justify-center pl-10 pr-8 py-6 ${backBackground ? 'bg-white/80 backdrop-blur-[2px]' : ''}`}>
+                            <div className="mb-6 border-b pb-4" style={{ borderBottomColor: `${textColor || '#1e293b'}20` }}>
+                              <h3 className="text-3xl font-bold leading-none mb-1">{personName || 'Your Name'}</h3>
+                              <p className="text-sm font-medium opacity-80 tracking-widest" style={{ color: primaryColor }}>{jobTitle || 'Your Title'}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm font-medium">
+                              {phone && (
+                                <div className="flex items-center gap-2">
+                                  <Smartphone className="h-4 w-4 shrink-0" style={{ color: primaryColor }} />
+                                  <span className="opacity-90 truncate">{phone}</span>
+                                </div>
+                              )}
+                              {email && (
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4 shrink-0" style={{ color: primaryColor }} />
+                                  <span className="opacity-90 truncate">{email}</span>
+                                </div>
+                              )}
+                              {socialLinks
+                                .filter(link => link.visible && link.value)
+                                .map(link => {
+                                  const IconComponent = getSocialIcon(link.id);
+                                  return (
+                                    <div key={link.id} className="flex items-center gap-2">
+                                      <IconComponent className="h-4 w-4 shrink-0" style={{ color: primaryColor }} />
+                                      <span className="opacity-90 truncate">{link.value}</span>
+                                    </div>
+                                  );
+                                })}
+                              {website && (
+                                <div className="flex items-center gap-2">
+                                  <Globe className="h-4 w-4 shrink-0" style={{ color: primaryColor }} />
+                                  <span className="opacity-90 truncate">{website}</span>
+                                </div>
+                              )}
+                              {(address1 || address2 || address3) && (
+                                <div className="flex items-start gap-2 col-span-2 mt-1">
+                                  <MapPin className="h-4 w-4 shrink-0 mt-0.5" style={{ color: primaryColor }} />
+                                  <div className="flex flex-col opacity-90 leading-tight">
+                                    {address1 && <span>{address1}</span>}
+                                    {address2 && <span>{address2}</span>}
+                                    {address3 && <span>{address3}</span>}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

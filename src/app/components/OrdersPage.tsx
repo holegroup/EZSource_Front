@@ -9,6 +9,7 @@ import { Package, Clock, CheckCircle, Truck, MapPin } from 'lucide-react';
 import { StatusBadge, OrderStatus } from './StatusBadge';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { formatUsPhone, US_PHONE_PLACEHOLDER } from '../lib/phone';
 
 interface Order {
   id: string;
@@ -421,7 +422,7 @@ export function OrdersPage({ onMenuClick, userRole }: OrdersPageProps) {
       const resData = await response.json();
       if (response.ok && resData.success) {
         setPickupLocations(prev => [...prev, resData.data]);
-        const fullAddress = `${resData.data.name} - ${resData.data.address}${resData.data.phone ? ` (Phone: ${resData.data.phone})` : ''}`;
+        const fullAddress = `${resData.data.name} - ${resData.data.address}${resData.data.phone ? ` (Phone: ${formatUsPhone(resData.data.phone)})` : ''}`;
         setAdminPickupAddress(fullAddress);
         setNewLocationName('');
         setNewLocationAddress('');
@@ -705,7 +706,7 @@ export function OrdersPage({ onMenuClick, userRole }: OrdersPageProps) {
                 <h3 className="text-xs font-bold">{customization.personName}</h3>
                 <p className="text-[7px] font-medium tracking-wide opacity-85">{customization.jobTitle}</p>
                 <div className="pt-0.5 text-[5px] space-y-0.2 opacity-85 leading-normal">
-                  {customization.phone && <div>📞 {customization.phone}</div>}
+                  {formatUsPhone(customization.phone) && <div>📞 {formatUsPhone(customization.phone)}</div>}
                   {customization.email && <div>✉️ {customization.email}</div>}
                 </div>
               </div>
@@ -922,7 +923,7 @@ export function OrdersPage({ onMenuClick, userRole }: OrdersPageProps) {
                               >
                                 <option value="">-- No Pickup Location Assigned --</option>
                                 {pickupLocations.map((loc) => {
-                                  const fullAddress = `${loc.name} - ${loc.address}${loc.phone ? ` (Phone: ${loc.phone})` : ''}`;
+                                  const fullAddress = `${loc.name} - ${loc.address}${loc.phone ? ` (Phone: ${formatUsPhone(loc.phone)})` : ''}`;
                                   return (
                                     <option key={loc._id} value={fullAddress}>
                                       {loc.name} ({loc.address.substring(0, 20)}...)
@@ -950,9 +951,12 @@ export function OrdersPage({ onMenuClick, userRole }: OrdersPageProps) {
                                 />
                                 <div className="flex gap-2">
                                   <Input 
-                                    placeholder="Phone (Optional)" 
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="tel"
+                                    placeholder={US_PHONE_PLACEHOLDER}
                                     value={newLocationPhone} 
-                                    onChange={(e: any) => setNewLocationPhone(e.target.value)}
+                                    onChange={(e: any) => setNewLocationPhone(formatUsPhone(e.target.value))}
                                     className="text-xs h-8 bg-background flex-1"
                                   />
                                   <Button 

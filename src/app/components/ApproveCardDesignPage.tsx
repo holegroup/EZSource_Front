@@ -9,6 +9,7 @@ import {
   Facebook, Twitter, Video, Image as ImageIcon, ArrowLeft, Loader2, AlertCircle,
   ShoppingCart, CreditCard
 } from 'lucide-react';
+import { formatUsPhone, US_PHONE_PLACEHOLDER } from '../lib/phone';
 
 type AddressFields = {
   name: string;
@@ -20,10 +21,6 @@ type AddressFields = {
   zip: string;
   country: string;
 };
-
-function digitsOnly(value: string) {
-  return String(value || '').replace(/\D/g, '').slice(0, 10);
-}
 
 function parseCityStateZip(line: string) {
   const trimmed = (line || '').trim();
@@ -63,7 +60,7 @@ function storeAddressFields(store: {
     const parsed = parseCityStateZip(store.address3 || '');
     return {
       name: store?.name || '',
-      phone: digitsOnly(store?.phone || ''),
+      phone: formatUsPhone(store?.phone || ''),
       address1: store.address1 || '',
       address2: store.address2 || '',
       city: parsed.city,
@@ -75,7 +72,7 @@ function storeAddressFields(store: {
   const parsed = parseStreetCityStateZip(store?.address || '');
   return {
     name: store?.name || '',
-    phone: digitsOnly(store?.phone || ''),
+    phone: formatUsPhone(store?.phone || ''),
     address1: parsed.address1,
     address2: parsed.address2,
     city: parsed.city,
@@ -141,7 +138,7 @@ export function ApproveCardDesignPage() {
         address1: globalConfig.address1 || '',
         address2: globalConfig.address2 || '',
         address3: globalConfig.address3 || '',
-        phone: globalConfig.phone || '',
+        phone: formatUsPhone(globalConfig.phone || ''),
       }]
     : [];
   const availableStores = pickupLocations.length > 0 ? pickupLocations : fallbackStores;
@@ -167,7 +164,7 @@ export function ApproveCardDesignPage() {
 
   const applyAddressFields = (addr: AddressFields) => {
     setShippingName(addr.name || '');
-    setShippingPhone(digitsOnly(addr.phone || ''));
+    setShippingPhone(formatUsPhone(addr.phone || ''));
     setShippingAddress1(addr.address1 || '');
     setShippingAddress2(addr.address2 || '');
     setShippingCity(addr.city || '');
@@ -269,7 +266,7 @@ export function ApproveCardDesignPage() {
           const u = resData.data;
           setProfileContact({
             name: u.fullName || '',
-            phone: digitsOnly(u.phone || ''),
+            phone: formatUsPhone(u.phone || ''),
           });
         }
       } catch (err) {
@@ -284,7 +281,7 @@ export function ApproveCardDesignPage() {
     const parsed = parseCityStateZip(details.address3 || '');
     setSavedCustomerAddress({
       name: profileContact.name || details.personName || '',
-      phone: profileContact.phone || digitsOnly(details.phone || ''),
+      phone: profileContact.phone || formatUsPhone(details.phone || ''),
       address1: details.address1 || '',
       address2: details.address2 || '',
       city: parsed.city,
@@ -434,7 +431,7 @@ export function ApproveCardDesignPage() {
     const paymentLines = `Payment Method: ${method.toUpperCase()}
 ${method === 'credit_card' ? `Cardholder: ${cardName}\nCard: **** **** **** ${cardNumber.slice(-4)}` : ''}`;
     const storeBlock = selectedStore
-      ? `${selectedStore.name}\n${selectedStore.address}${selectedStore.phone ? `\nPhone: ${selectedStore.phone}` : ''}`
+      ? `${selectedStore.name}\n${selectedStore.address}${selectedStore.phone ? `\nPhone: ${formatUsPhone(selectedStore.phone)}` : ''}`
       : '';
 
     const orderData = {
@@ -716,30 +713,59 @@ ${paymentLines}`
                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2">Front Side</span>
                 <Card className="w-full aspect-[3.5/2] shadow-lg overflow-hidden rounded-md border transition-all duration-300 relative bg-no-repeat bg-center"
                       style={{ 
-                        backgroundColor: details.secondaryColor || '#ffffff',
+                        backgroundColor: details.backBackground ? 'transparent' : (details.secondaryColor || '#ffffff'),
+                        backgroundImage: details.backBackground ? `url(${details.backBackground})` : 'none',
+                        backgroundSize: 'cover',
                         fontFamily: getFontFamily(details.fontFamily), 
                         color: details.textColor || '#1e293b',
-                        borderColor: 'rgba(0,0,0,0.05)'
+                        borderColor: details.backBackground ? 'transparent' : 'rgba(0,0,0,0.05)'
                       }}>
-                  <div className="absolute top-0 right-0 p-4 text-right flex flex-col items-end">
-                    <span className="text-xs font-bold tracking-widest uppercase opacity-75">{details.companyName}</span>
-                    <span className="text-[8px] tracking-wider opacity-60 italic">{details.tagline}</span>
-                  </div>
-
-                  <div className="absolute bottom-0 left-0 p-4 space-y-1 max-w-[65%]">
-                    <h3 className="text-lg font-bold leading-tight">{details.personName}</h3>
-                    <p className="text-[10px] font-medium tracking-wide opacity-80 leading-none">{details.jobTitle}</p>
-                    <div className="pt-2 text-[8px] space-y-0.5 leading-normal opacity-85">
-                      {details.phone && <div className="flex items-center gap-1"><Smartphone className="h-2 w-2" /> {details.phone}</div>}
-                      {details.email && <div className="flex items-center gap-1"><Mail className="h-2 w-2" /> {details.email}</div>}
-                      {details.website && <div className="flex items-center gap-1"><Globe className="h-2 w-2" /> {details.website}</div>}
+                  {!details.backBackground && (
+                    <div className="absolute top-0 bottom-0 left-0 w-3" style={{ backgroundColor: details.primaryColor || '#10b981' }}></div>
+                  )}
+                  <div className={`h-full flex flex-col justify-center pl-8 pr-6 py-4 ${details.backBackground ? 'bg-white/80 backdrop-blur-[2px]' : ''}`}>
+                    <div className="mb-3 border-b pb-2" style={{ borderBottomColor: `${details.textColor || '#1e293b'}20` }}>
+                      <h3 className="text-xl font-bold leading-none mb-1">{details.personName || 'Your Name'}</h3>
+                      <p className="text-xs font-medium opacity-80 tracking-widest" style={{ color: details.primaryColor || '#10b981' }}>{details.jobTitle}</p>
                     </div>
-                  </div>
-
-                  <div className="absolute bottom-0 right-0 p-4 text-[7px] space-y-0.5 max-w-[45%] text-right opacity-80 leading-tight">
-                    {details.address1 && <div>{details.address1}</div>}
-                    {details.address2 && <div>{details.address2}</div>}
-                    {details.address3 && <div>{details.address3}</div>}
+                    <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[11px] font-medium">
+                      {formatUsPhone(details.phone) && (
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Smartphone className="h-3 w-3 shrink-0" style={{ color: details.primaryColor || '#10b981' }} />
+                          <span className="opacity-90 truncate">{formatUsPhone(details.phone)}</span>
+                        </div>
+                      )}
+                      {details.email && (
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Mail className="h-3 w-3 shrink-0" style={{ color: details.primaryColor || '#10b981' }} />
+                          <span className="opacity-90 truncate">{details.email}</span>
+                        </div>
+                      )}
+                      {(Array.isArray(details.socialLinks) ? details.socialLinks : [])
+                        .filter((link: any) => link.visible && link.value)
+                        .map((link: any) => (
+                          <div key={link.id} className="flex items-center gap-1.5 min-w-0">
+                            <span className="shrink-0 [&>svg]:h-3 [&>svg]:w-3" style={{ color: details.primaryColor || '#10b981' }}>{renderSocialIcon(link.id)}</span>
+                            <span className="opacity-90 truncate">{link.value}</span>
+                          </div>
+                        ))}
+                      {details.website && (
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Globe className="h-3 w-3 shrink-0" style={{ color: details.primaryColor || '#10b981' }} />
+                          <span className="opacity-90 truncate">{details.website}</span>
+                        </div>
+                      )}
+                      {(details.address1 || details.address2 || details.address3) && (
+                        <div className="flex items-start gap-1.5 col-span-2 min-w-0">
+                          <MapPin className="h-3 w-3 shrink-0 mt-0.5" style={{ color: details.primaryColor || '#10b981' }} />
+                          <div className="flex flex-col opacity-90 leading-tight">
+                            {details.address1 && <span>{details.address1}</span>}
+                            {details.address2 && <span>{details.address2}</span>}
+                            {details.address3 && <span>{details.address3}</span>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Card>
               </div>
@@ -748,11 +774,18 @@ ${paymentLines}`
                 <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2">Back Side</span>
                 <Card className="w-full aspect-[3.5/2] shadow-lg overflow-hidden rounded-md border-0 transition-all duration-300 relative flex items-center justify-center p-8 bg-no-repeat bg-center"
                       style={{ 
-                        backgroundColor: details.primaryColor || '#10b981', 
+                        backgroundColor: details.frontBackground ? 'transparent' : (details.primaryColor || '#10b981'),
+                        backgroundImage: details.frontBackground ? `url(${details.frontBackground})` : 'none',
+                        backgroundSize: 'cover',
                         fontFamily: getFontFamily(details.fontFamily) 
                       }}>
-                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent pointer-events-none"></div>
+                  {!details.frontBackground && (
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent pointer-events-none"></div>
+                  )}
                   <div className="relative z-10 flex flex-col items-center text-center">
+                    {details.uploadedLogo && (
+                      <img src={details.uploadedLogo} alt="Logo" className="h-12 object-contain mb-3 drop-shadow-md" />
+                    )}
                     <div className="p-3 bg-black/10 backdrop-blur-sm rounded-lg border border-white/20 shadow-sm">
                       <h2 className="text-2xl font-bold tracking-tight mb-0.5" style={{ color: details.secondaryColor || '#ffffff' }}>{details.companyName}</h2>
                       <p className="text-[10px] tracking-widest uppercase opacity-90 font-medium" style={{ color: details.secondaryColor || '#ffffff' }}>{details.tagline}</p>
@@ -1008,7 +1041,7 @@ ${paymentLines}`
                                     <p className="text-sm font-semibold text-primary">Delivered to this store</p>
                                     <p className="text-xs font-medium text-foreground mt-1">{selectedStore.name}</p>
                                     <p className="text-xs text-muted-foreground mt-0.5">{selectedStore.address}</p>
-                                    {selectedStore.phone && <p className="text-xs text-muted-foreground">Phone: {selectedStore.phone}</p>}
+                                    {formatUsPhone(selectedStore.phone) && <p className="text-xs text-muted-foreground">Phone: {formatUsPhone(selectedStore.phone)}</p>}
                                   </div>
                                 ) : (
                                   <p className="text-xs text-muted-foreground">Select a store. The order is delivered to that store's address.</p>
@@ -1052,7 +1085,7 @@ ${paymentLines}`
                               </div>
                               <div className="space-y-1 col-span-2">
                                 <Label htmlFor="shippingPhone" className="text-xs">Phone Number</Label>
-                                <Input id="shippingPhone" type="tel" inputMode="numeric" autoComplete="tel" maxLength={10} required={deliveryMethod !== 'pickup' || requestCustomAddress} readOnly={deliveryMethod === 'pickup' && !requestCustomAddress} value={shippingPhone} onChange={e => setShippingPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit number" />
+                                <Input id="shippingPhone" type="tel" inputMode="tel" autoComplete="tel" required={deliveryMethod !== 'pickup' || requestCustomAddress} readOnly={deliveryMethod === 'pickup' && !requestCustomAddress} value={shippingPhone} onChange={e => setShippingPhone(formatUsPhone(e.target.value))} placeholder={US_PHONE_PLACEHOLDER} />
                               </div>
                               <div className="space-y-1 col-span-2">
                                 <Label htmlFor="shippingAddress1" className="text-xs">Address Line 1</Label>
@@ -1347,32 +1380,59 @@ ${paymentLines}`
                   <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2">Front Side</span>
                   <Card className="w-full aspect-[3.5/2] shadow-lg overflow-hidden rounded-md border transition-all duration-300 relative bg-no-repeat bg-center"
                         style={{ 
-                          backgroundColor: details.secondaryColor || '#ffffff',
+                          backgroundColor: details.backBackground ? 'transparent' : (details.secondaryColor || '#ffffff'),
+                          backgroundImage: details.backBackground ? `url(${details.backBackground})` : 'none',
+                          backgroundSize: 'cover',
                           fontFamily: getFontFamily(details.fontFamily), 
                           color: details.textColor || '#1e293b',
-                          borderColor: 'rgba(0,0,0,0.05)'
+                          borderColor: details.backBackground ? 'transparent' : 'rgba(0,0,0,0.05)'
                         }}>
-                    
-                    <div className="absolute top-0 right-0 p-4 text-right flex flex-col items-end">
-                      <span className="text-xs font-bold tracking-widest uppercase opacity-75">{details.companyName}</span>
-                      <span className="text-[8px] tracking-wider opacity-60 italic">{details.tagline}</span>
-                    </div>
-
-                    <div className="absolute bottom-0 left-0 p-4 space-y-1 max-w-[65%]">
-                      <h3 className="text-lg font-bold leading-tight">{details.personName}</h3>
-                      <p className="text-[10px] font-medium tracking-wide opacity-80 leading-none">{details.jobTitle}</p>
-                      
-                      <div className="pt-2 text-[8px] space-y-0.5 leading-normal opacity-85">
-                        {details.phone && <div className="flex items-center gap-1"><Smartphone className="h-2 w-2" /> {details.phone}</div>}
-                        {details.email && <div className="flex items-center gap-1"><Mail className="h-2 w-2" /> {details.email}</div>}
-                        {details.website && <div className="flex items-center gap-1"><Globe className="h-2 w-2" /> {details.website}</div>}
+                    {!details.backBackground && (
+                      <div className="absolute top-0 bottom-0 left-0 w-3" style={{ backgroundColor: details.primaryColor || '#10b981' }}></div>
+                    )}
+                    <div className={`h-full flex flex-col justify-center pl-8 pr-6 py-4 ${details.backBackground ? 'bg-white/80 backdrop-blur-[2px]' : ''}`}>
+                      <div className="mb-3 border-b pb-2" style={{ borderBottomColor: `${details.textColor || '#1e293b'}20` }}>
+                        <h3 className="text-xl font-bold leading-none mb-1">{details.personName || 'Your Name'}</h3>
+                        <p className="text-xs font-medium opacity-80 tracking-widest" style={{ color: details.primaryColor || '#10b981' }}>{details.jobTitle}</p>
                       </div>
-                    </div>
-
-                    <div className="absolute bottom-0 right-0 p-4 text-[7px] space-y-0.5 max-w-[45%] text-right opacity-80 leading-tight">
-                      {details.address1 && <div>{details.address1}</div>}
-                      {details.address2 && <div>{details.address2}</div>}
-                      {details.address3 && <div>{details.address3}</div>}
+                      <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[11px] font-medium">
+                        {formatUsPhone(details.phone) && (
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Smartphone className="h-3 w-3 shrink-0" style={{ color: details.primaryColor || '#10b981' }} />
+                            <span className="opacity-90 truncate">{formatUsPhone(details.phone)}</span>
+                          </div>
+                        )}
+                        {details.email && (
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Mail className="h-3 w-3 shrink-0" style={{ color: details.primaryColor || '#10b981' }} />
+                            <span className="opacity-90 truncate">{details.email}</span>
+                          </div>
+                        )}
+                        {(Array.isArray(details.socialLinks) ? details.socialLinks : [])
+                          .filter((link: any) => link.visible && link.value)
+                          .map((link: any) => (
+                            <div key={link.id} className="flex items-center gap-1.5 min-w-0">
+                              <span className="shrink-0 [&>svg]:h-3 [&>svg]:w-3" style={{ color: details.primaryColor || '#10b981' }}>{renderSocialIcon(link.id)}</span>
+                              <span className="opacity-90 truncate">{link.value}</span>
+                            </div>
+                          ))}
+                        {details.website && (
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Globe className="h-3 w-3 shrink-0" style={{ color: details.primaryColor || '#10b981' }} />
+                            <span className="opacity-90 truncate">{details.website}</span>
+                          </div>
+                        )}
+                        {(details.address1 || details.address2 || details.address3) && (
+                          <div className="flex items-start gap-1.5 col-span-2 min-w-0">
+                            <MapPin className="h-3 w-3 shrink-0 mt-0.5" style={{ color: details.primaryColor || '#10b981' }} />
+                            <div className="flex flex-col opacity-90 leading-tight">
+                              {details.address1 && <span>{details.address1}</span>}
+                              {details.address2 && <span>{details.address2}</span>}
+                              {details.address3 && <span>{details.address3}</span>}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 </div>
@@ -1382,11 +1442,18 @@ ${paymentLines}`
                   <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2">Back Side</span>
                   <Card className="w-full aspect-[3.5/2] shadow-lg overflow-hidden rounded-md border-0 transition-all duration-300 relative flex items-center justify-center p-8 bg-no-repeat bg-center"
                         style={{ 
-                          backgroundColor: details.primaryColor || '#10b981', 
+                          backgroundColor: details.frontBackground ? 'transparent' : (details.primaryColor || '#10b981'),
+                          backgroundImage: details.frontBackground ? `url(${details.frontBackground})` : 'none',
+                          backgroundSize: 'cover',
                           fontFamily: getFontFamily(details.fontFamily) 
                         }}>
-                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent pointer-events-none"></div>
+                    {!details.frontBackground && (
+                      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent pointer-events-none"></div>
+                    )}
                     <div className="relative z-10 flex flex-col items-center text-center">
+                      {details.uploadedLogo && (
+                        <img src={details.uploadedLogo} alt="Logo" className="h-12 object-contain mb-3 drop-shadow-md" />
+                      )}
                       <div className="p-3 bg-black/10 backdrop-blur-sm rounded-lg border border-white/20 shadow-sm">
                         <h2 className="text-2xl font-bold tracking-tight mb-0.5" style={{ color: details.secondaryColor || '#ffffff' }}>{details.companyName}</h2>
                         <p className="text-[10px] tracking-widest uppercase opacity-90 font-medium" style={{ color: details.secondaryColor || '#ffffff' }}>{details.tagline}</p>
@@ -1707,7 +1774,7 @@ ${paymentLines}`
                             </div>
                             <div className="space-y-1 col-span-2">
                               <Label htmlFor="shippingPhone" className="text-xs">Phone Number</Label>
-                              <Input id="shippingPhone" type="tel" inputMode="numeric" autoComplete="tel" maxLength={10} required value={shippingPhone} onChange={e => setShippingPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit number" />
+                              <Input id="shippingPhone" type="tel" inputMode="tel" autoComplete="tel" required value={shippingPhone} onChange={e => setShippingPhone(formatUsPhone(e.target.value))} placeholder={US_PHONE_PLACEHOLDER} />
                             </div>
                             <div className="space-y-1 col-span-2">
                               <Label htmlFor="shippingAddress1" className="text-xs">Address Line 1</Label>

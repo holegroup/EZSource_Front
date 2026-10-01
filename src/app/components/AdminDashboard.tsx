@@ -6,6 +6,7 @@ import { TrendingUp, Users, Package, DollarSign, ShoppingCart, AlertCircle, Eye,
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { StatusBadge, OrderStatus } from './StatusBadge';
 import { Button } from './ui/button';
+import { formatUsPhone } from '../lib/phone';
 
 interface RecentOrder {
   id: string;
@@ -178,7 +179,7 @@ export function AdminDashboard({ onMenuClick }: AdminDashboardProps) {
                 <h3 className="text-xs font-bold">{customization.personName}</h3>
                 <p className="text-[6px] font-medium tracking-wide opacity-85">{customization.jobTitle}</p>
                 <div className="pt-0.5 text-[4.5px] opacity-85 leading-normal">
-                  {customization.phone && <div>📞 {customization.phone}</div>}
+                  {formatUsPhone(customization.phone) && <div>📞 {formatUsPhone(customization.phone)}</div>}
                   {customization.email && <div>✉️ {customization.email}</div>}
                 </div>
               </div>

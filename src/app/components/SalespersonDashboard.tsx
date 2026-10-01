@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Users, Calendar, PhoneCall, TrendingUp, CheckCircle, XCircle, AlertCircle, Menu } from 'lucide-react';
 import { StatsCard } from './StatsCard';
+import { formatUsPhone } from '../lib/phone';
 
 interface SalespersonDashboardProps {
   onMenuClick?: () => void;
@@ -12,10 +13,10 @@ interface SalespersonDashboardProps {
 
 export function SalespersonDashboard({ onMenuClick }: SalespersonDashboardProps) {
   const leads = [
-    { id: 1, company: 'Acme Corporation', contact: 'John Smith', email: 'john@acme.com', phone: '+1 555-0101', status: 'qualified', value: 25000, source: 'Website', addedDate: '2026-02-20' },
-    { id: 2, company: 'Tech Solutions Inc', contact: 'Sarah Johnson', email: 'sarah@techsol.com', phone: '+1 555-0102', status: 'proposal', value: 18500, source: 'Referral', addedDate: '2026-02-18' },
-    { id: 3, company: 'Global Enterprises', contact: 'Mike Davis', email: 'mike@global.com', phone: '+1 555-0103', status: 'negotiation', value: 32000, source: 'Cold Call', addedDate: '2026-02-15' },
-    { id: 4, company: 'StartupHub Co', contact: 'Emily Brown', email: 'emily@startuphub.com', phone: '+1 555-0104', status: 'new', value: 8900, source: 'LinkedIn', addedDate: '2026-02-28' },
+    { id: 1, company: 'Acme Corporation', contact: 'John Smith', email: 'john@acme.com', phone: '+1 (555) 555-0101', status: 'qualified', value: 25000, source: 'Website', addedDate: '2026-02-20' },
+    { id: 2, company: 'Tech Solutions Inc', contact: 'Sarah Johnson', email: 'sarah@techsol.com', phone: '+1 (555) 555-0102', status: 'proposal', value: 18500, source: 'Referral', addedDate: '2026-02-18' },
+    { id: 3, company: 'Global Enterprises', contact: 'Mike Davis', email: 'mike@global.com', phone: '+1 (555) 555-0103', status: 'negotiation', value: 32000, source: 'Cold Call', addedDate: '2026-02-15' },
+    { id: 4, company: 'StartupHub Co', contact: 'Emily Brown', email: 'emily@startuphub.com', phone: '+1 (555) 555-0104', status: 'new', value: 8900, source: 'LinkedIn', addedDate: '2026-02-28' },
   ];
 
   const meetings = [
@@ -125,7 +126,7 @@ export function SalespersonDashboard({ onMenuClick }: SalespersonDashboardProps)
                           <TableCell>{lead.contact}</TableCell>
                           <TableCell className="text-sm">
                             <div>{lead.email}</div>
-                            <div className="text-muted-foreground">{lead.phone}</div>
+                            <div className="text-muted-foreground">{formatUsPhone(lead.phone)}</div>
                           </TableCell>
                           <TableCell>
                             {lead.status === 'new' && (

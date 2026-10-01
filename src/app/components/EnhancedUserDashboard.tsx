@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useNavigate } from 'react-router-dom';
+import { formatUsPhone, US_PHONE_PLACEHOLDER } from '../lib/phone';
 import {
   Package, ShoppingCart, Star, Plus, Menu, UploadCloud,
   FileText, CheckCircle, Clock, Send, Save, User, Download, FileUp, Zap, Eye
@@ -466,7 +467,14 @@ export function EnhancedUserDashboard({ onMenuClick }: UserDashboardProps) {
                     </div>
                     <div className="space-y-2">
                       <Label>Phone Number</Label>
-                      <Input defaultValue="+1 (555) 012-3456" />
+                      <Input
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        defaultValue="+1 (555) 012-3456"
+                        placeholder={US_PHONE_PLACEHOLDER}
+                        onChange={(e) => { e.target.value = formatUsPhone(e.target.value); }}
+                      />
                     </div>
                     <Button className="mt-2" variant="secondary">Change Password</Button>
                   </div>

@@ -145,6 +145,7 @@ export function EnvelopesCustomizePage({ onMenuClick }: EnvelopesCustomizePagePr
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          clientOrigin: window.location.origin,
           designType: 'envelope',
           designDetails: {
             measurement,

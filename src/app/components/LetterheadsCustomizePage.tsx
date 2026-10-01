@@ -150,6 +150,7 @@ export function LetterheadsCustomizePage({ onMenuClick }: LetterheadsCustomizePa
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          clientOrigin: window.location.origin,
           designType: 'letterhead',
           designDetails: {
             measurement,

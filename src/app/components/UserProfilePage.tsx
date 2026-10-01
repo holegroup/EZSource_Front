@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useState, useEffect } from 'react';
+import { formatUsPhone, US_PHONE_PLACEHOLDER } from '../lib/phone';
 
 interface UserProfilePageProps {
   onMenuClick?: () => void;
@@ -34,7 +35,7 @@ export function UserProfilePage({ onMenuClick }: UserProfilePageProps) {
         if (response.ok && resData.success && resData.data) {
           const user = resData.data;
           setFullName(user.fullName || '');
-          setPhone((user.phone || '').replace(/\D/g, '').slice(0, 10));
+          setPhone(formatUsPhone(user.phone || ''));
           setEmail(user.email || '');
           setJobTitle(user.jobTitle || '');
           setLinkedin(user.linkedin || '');
@@ -118,7 +119,7 @@ export function UserProfilePage({ onMenuClick }: UserProfilePageProps) {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase">Phone Number</label>
-                    <Input type="tel" inputMode="numeric" autoComplete="tel" maxLength={10} value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit number" />
+                    <Input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e => setPhone(formatUsPhone(e.target.value))} placeholder={US_PHONE_PLACEHOLDER} />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase">Email Address (Read-only)</label>
